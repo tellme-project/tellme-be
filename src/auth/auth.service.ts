@@ -1,7 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import db from 'src/database';
+import { LoginDto } from './dto/login.dto';
+import { sign } from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +28,26 @@ export class AuthService {
                 })
                 .returningAll()
                 .execute();
+    }
+
+    async login(loginDto: LoginDto) {
+        const { username, password } = loginDto;
+        const user = await this.getUser(username);
+
+        if (!user) throw new NotFoundException(`Username ${username} does not exist`);
+
+        const isPasswordTheSame = await this.comparePassword(password, user.password);
+
+        if (!isPasswordTheSame) throw new BadRequestException("Invalid password");
+
+        const expiresIn = "1h";
+        const token = sign(
+            { username: username },
+            process.env.JWT_SECRET as string,
+            { expiresIn }
+        );
+
+        return { user, token };
     }
 
     async hashPassword(plainText: string): Promise<string> {
