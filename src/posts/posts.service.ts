@@ -15,7 +15,7 @@ export class PostsService {
 
   async create(createPostDto: CreatePostDto) {
     const to = await this.getUser(createPostDto.to);
-    if (!to) {throw new NotFoundException(`Username ${createPostDto.to} is not found`)}
+    if (!to && createPostDto.to != null) {throw new NotFoundException(`Username ${createPostDto.to} is not found`)}
     return await db.insertInto("Post")
             .values({
               content: createPostDto.content,
@@ -29,16 +29,16 @@ export class PostsService {
   async createNonAnonymous(createPostDto: CreatePostDto, sender) {
     const { from, to } = createPostDto;
     const checkFrom = await this.getUser(from);
-    if (!checkFrom) {throw new NotFoundException(`Username ${from} is not found`)}
+    if (!checkFrom && from != null) {throw new NotFoundException(`Username ${from} is not found`)}
     
     const checkTo = await this.getUser(to);
-    if (!checkTo) {throw new NotFoundException(`Username ${to} is not found`)}
+    if (!checkTo && to != null) {throw new NotFoundException(`Username ${to} is not found`)}
 
     if (from != null && from != sender) {
       throw new BadRequestException("You can't send post using other person's username")
     }
 
-    if (from == to) {
+    if (from == to && from != null && to != null) {
       throw new BadRequestException("You can't send message to yourself")
     }
 
