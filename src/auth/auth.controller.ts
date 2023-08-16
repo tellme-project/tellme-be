@@ -30,7 +30,12 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get("/profile")
-  async profile(@Req() req){
-    return req.user.username;
+  async profile(@Req() req, @Res() res){
+    try {
+      const user = await this.authService.getUser(req.user.username);
+      return res.status(HttpStatus.OK).json(user);
+    } catch (error) {
+      return res.status(error.status).json(error.response);
+    }
   }
 }

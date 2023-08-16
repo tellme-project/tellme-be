@@ -20,7 +20,7 @@ export class AuthService {
         
         if (await this.getUser(username)) throw new BadRequestException("Username is used");
         
-        return db.insertInto("User")
+        return await db.insertInto("User")
                 .values({
                     username,
                     name,
@@ -42,7 +42,7 @@ export class AuthService {
 
         const expiresIn = "1h";
         const token = sign(
-            { username: username },
+            { username: username, name: user.name },
             process.env.JWT_SECRET as string,
             { expiresIn }
         );
